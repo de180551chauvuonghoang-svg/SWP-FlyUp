@@ -1,0 +1,19 @@
+Create  fe folder --> New Terminal --> cd frontend--> npm create vite@latest . --> React + JavaScript --> npm run dev chạy frontend 
+
+Crete be foder --> New Terminal --> cd backend --> npm init -i (create package.json) --> npm i express@4.21.2 mongoose@8.10.1 jsonwebtoken@9.0.2 bcryptjs@2.4.3
+
+--> npm i dotenv@16.4.7 cookie-parser@1.4.7 --> npm i nodemon -D (chạy port realtime theo setting ở package.json)   
+
+Deploy với Sevalla --> ở folder tổng dự án chạy lệnh  npm init -y (create package.json) --> ( sau đó New terminal cd frontend --> npm run build ) bỏ qua xóa dist nếu chạy rồi  --> 
+
+package.json của folder dự án 
+
+--> MongoDB
+
+npm install mongodb
+
+de180551chauvuonghoang_db_user
+
+8DjUD2m8QHHDut2e
+
+mongodb+srv://de180551chauvuonghoang_db_user:8DjUD2m8QHHDut2e@cluster0.nkqrqyj.mongodb.net/? retryWrites=true&w=majority&appName=Cluster0

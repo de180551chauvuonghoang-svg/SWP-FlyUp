@@ -35,6 +35,13 @@ new terminal --> cd backend --> npm i cloudinary@2.5.1
 setting --> API KEY TO GET KEY  
 
 cloudname: dduyqntd6
+-------------------  Arcjet Rate Limit ----------------
+
+new terminal --> cd backend -->  npm i @arcjet/node@1.0.0-beta.10 @arcjet/inspect@1.0.0-beta.10
+
+
+
+cloudname: dduyqntd6
 
 ------------------ Test API  ----------------
 

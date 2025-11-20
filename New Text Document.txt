@@ -1,3 +1,6 @@
+
+------------------
+
 Create  fe folder --> New Terminal --> cd frontend--> npm create vite@latest . --> React + JavaScript --> npm run dev chạy frontend 
 
 Crete be foder --> New Terminal --> cd backend --> npm init -i (create package.json) --> npm i express@4.21.2 mongoose@8.10.1 jsonwebtoken@9.0.2 bcryptjs@2.4.3
@@ -8,6 +11,8 @@ Deploy với Sevalla --> ở folder tổng dự án chạy lệnh  npm init -y (
 
 package.json của folder dự án 
 
+------------------ MongoDB----------------
+
 --> MongoDB
 
 npm install mongodb
@@ -17,3 +22,21 @@ de180551chauvuonghoang_db_user
 8DjUD2m8QHHDut2e
 
 mongodb+srv://de180551chauvuonghoang_db_user:8DjUD2m8QHHDut2e@cluster0.nkqrqyj.mongodb.net/? retryWrites=true&w=majority&appName=Cluster0
+
+
+
+------------------ Test API  ----------------
+
+// Sign Up 
+
+{
+    "fullName": "Hoang",
+    "email": "test@example.com",
+    "password": "123456"
+}
+
+------------------ Kill port  ----------------
+
+netstat -ano | findstr :3000
+
+for /f "tokens=5" %a in ('netstat -ano ^| find ":3000"') do taskkill /PID %a /F

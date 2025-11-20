@@ -13,11 +13,16 @@ const __dirname = path.resolve();
 
 
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json()); //req.body
 // console.log(process.env.PORT);
 
 app.use('/api/auth', authRouter);
 app.use('/api/messages', messagesRouter);
 
+app.get('/', (_, res) => {
+  res.status(200).json({ message: 'Server is running' });
+});
 
 //make ready for deployment
 

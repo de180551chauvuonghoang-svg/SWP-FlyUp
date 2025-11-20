@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/de180551chauvuonghoang-svg/SWP-FlyUp/issues"
   },
-  "homepage": "https://github.com/de180551chauvuonghoang-svg/SWP-FlyUp#readme"
+  "homepage": "https://github.com/de180551chauvuonghoang-svg/SWP-FlyUp#readme",
+  "dependencies": {
+    "cloudinary": "^2.5.1"
+  }
 }

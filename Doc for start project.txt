@@ -24,6 +24,10 @@ de180551chauvuonghoang_db_user
 mongodb+srv://de180551chauvuonghoang_db_user:8DjUD2m8QHHDut2e@cluster0.nkqrqyj.mongodb.net/? retryWrites=true&w=majority&appName=Cluster0
 
 
+------------------- Email Resend ----------------
+
+new terminal --> cd backend --> npm install resend@6.0.2
+
 
 ------------------ Test API  ----------------
 

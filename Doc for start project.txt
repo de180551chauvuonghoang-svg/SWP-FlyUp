@@ -65,3 +65,21 @@ cloudname: dduyqntd6
 netstat -ano | findstr :3000
 
 for /f "tokens=5" %a in ('netstat -ano ^| find ":3000"') do taskkill /PID %a /F
+
+
+------------------ Chat message account test  ----------------
+
+691ff1dfcd63697902465627
+{
+
+    "email": "de180551chauvuonghoang@gmail.com",
+    "password": "mit54480"
+}
+
+69200a105e91770ec48a9106
+
+{
+   
+    "email": "hieutran33@gmail.com",
+    "password": "hieutran33"
+}

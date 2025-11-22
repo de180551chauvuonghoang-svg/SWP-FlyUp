@@ -13,6 +13,8 @@ const messageSchema = new mongoose.Schema({
     },
     text: {
         type: String,
+        trim: true,
+        maxlength: 300,
         required: true,
     },
     image: {

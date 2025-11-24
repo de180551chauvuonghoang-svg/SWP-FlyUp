@@ -71,6 +71,9 @@ export const signup = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: "Email already exists" });
+    // check phone uniqueness
+    const existingPhone = await User.findOne({ phone: phoneNormalized });
+    if (existingPhone) return res.status(400).json({ message: "Phone already exists" });
 
     // 123456 => $dnjasdkasj_?dmsakmk
     const salt = await bcrypt.genSalt(10);

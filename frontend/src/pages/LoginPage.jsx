@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import BorderAnimatedContainer from "../components/BorderAnimatedContainer";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { GraduationCap, MailIcon, LockIcon, LoaderIcon } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -11,8 +11,41 @@ const LoginPage = () => {
     email: "",
     password: "",
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const { login, isLoggingIn } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const REMEMBER_KEY = "rememberCredentials";
+
+  const loadRemembered = () => {
+    try {
+      const raw = localStorage.getItem(REMEMBER_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj.expiresAt || Date.now() > obj.expiresAt) {
+        localStorage.removeItem(REMEMBER_KEY);
+        return null;
+      }
+      return obj;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // Prefill email when coming from signup
+    if (location?.state?.email) {
+      setFormData((s) => ({ ...s, email: location.state.email }));
+    }
+
+    // Load remembered credentials if exist and not expired
+    const remembered = loadRemembered();
+    if (remembered) {
+      setFormData({ email: remembered.email || "", password: remembered.password || "" });
+      setRememberMe(true);
+    }
+  }, [location]);
 
   const validateForm = () => {
     if (!formData.email.trim()) return toast.error("Email is required");
@@ -25,7 +58,24 @@ const LoginPage = () => {
     const success = validateForm();
     if (success === true) {
       const didLogin = await login(formData);
-      if (didLogin) navigate("/");
+      if (didLogin) {
+        // handle remember me: store credentials in localStorage with 45s expiry
+        try {
+          if (rememberMe) {
+            const payload = {
+              email: formData.email,
+              password: formData.password,
+              expiresAt: Date.now() + 45 * 1000,
+            };
+            localStorage.setItem(REMEMBER_KEY, JSON.stringify(payload));
+          } else {
+            localStorage.removeItem(REMEMBER_KEY);
+          }
+        } catch (e) {
+          // ignore storage errors
+        }
+        navigate("/");
+      }
     }
   };
 
@@ -85,6 +135,20 @@ const LoginPage = () => {
                         required
                       />
                     </div>
+                  </div>
+
+                  {/* REMEMBER ME */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="remember"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <label htmlFor="remember" className="text-sm text-slate-400">
+                      Remember me 
+                    </label>
                   </div>
 
                   {/* SUBMIT BUTTON */}

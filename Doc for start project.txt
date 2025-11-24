@@ -11,11 +11,34 @@ Deploy với Sevalla --> ở folder tổng dự án chạy lệnh  npm init -y (
 
 package.json của folder dự án 
 
+-------------------Cors----------------
+cd backend -->npm install cors 
+
+-------------------React-hot-toast----------------
+cd frontend -->npm install react-hot-toast
+
+------------------  Lucide-react----------------
+cd frontend -->npm list lucide-react
+
+------------------  Zustand----------------
+cd frontend --> npm install zustand@5.0.3
+------------------ Axios----------------
+cd frontend --> npm i axios 
+
+------------------ React Router v7----------------
+cd frontend --> npm install react-router-dom
+------------------ DaisyUI v4----------------
+cd frontend --> npm i -D daisyui@4.12.24
+
+------------------ Tailwind v3.4.17----------------
+cd frontend --> npm install -D tailwindcss@3 postcss autoprefixer
+npx tailwindcss init -p
+
+
 ------------------ MongoDB----------------
+ MongoDB
 
---> MongoDB
-
-npm install mongodb
+cd backend --> npm install mongodb
 
 de180551chauvuonghoang_db_user --> user
 

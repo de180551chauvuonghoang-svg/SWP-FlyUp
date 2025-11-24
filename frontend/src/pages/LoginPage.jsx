@@ -1,0 +1,138 @@
+import { useState } from "react";
+import { useAuthStore } from "../store/useAuthStore";
+import BorderAnimatedContainer from "../components/BorderAnimatedContainer";
+import { Link, useNavigate } from "react-router-dom";
+import { GraduationCap, MailIcon, LockIcon, LoaderIcon } from "lucide-react";
+
+import toast from "react-hot-toast";
+
+const LoginPage = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const { login, isLoggingIn } = useAuthStore();
+  const navigate = useNavigate();
+
+  const validateForm = () => {
+    if (!formData.email.trim()) return toast.error("Email is required");
+    if (!formData.password.trim()) return toast.error("Password is required");
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const success = validateForm();
+    if (success === true) {
+      const didLogin = await login(formData);
+      if (didLogin) navigate("/");
+    }
+  };
+
+  return (
+    <div className="w-full flex items-center justify-center p-4 bg-slate-900">
+      <div className="relative w-full max-w-6xl md:h-[800px] h-[650px]">
+        <BorderAnimatedContainer>
+          <div className="w-full h-full flex flex-col md:flex-row">
+            {/* FORM COLUMN - LEFT SIDE */}
+            <div className="md:w-1/2 p-8 flex items-center justify-center md:border-r border-slate-600/30">
+              <div className="w-full max-w-md">
+                {/* HEADING TEXT */}
+                <div className="text-center mb-8">
+                  <GraduationCap
+                    color="#c37e50"
+                    className="w-12 h-12 mx-auto text-slate-400 mb-4"
+                  />
+                  <h2 className="text-2xl font-bold text-slate-200 mb-2">
+                    Welcome Back
+                  </h2>
+                  <p className="text-slate-400">Sign in to your account</p>
+                </div>
+
+                {/* FORM */}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* EMAIL INPUT */}
+                  <div>
+                    <label className="auth-input-label">Email</label>
+                    <div className="relative">
+                      <MailIcon className="auth-input-icon" />
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        className="input"
+                        placeholder="johndoe@gmail.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* PASSWORD INPUT */}
+                  <div>
+                    <label className="auth-input-label">Password</label>
+                    <div className="relative">
+                      <LockIcon className="auth-input-icon" />
+                      <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        className="input"
+                        placeholder="Enter your password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* SUBMIT BUTTON */}
+                  <button
+                    className="auth-btn"
+                    type="submit"
+                    disabled={isLoggingIn}
+                  >
+                    {isLoggingIn ? (
+                      <LoaderIcon className="w-full h-5 animate-spin text-center" />
+                    ) : (
+                      "Login"
+                    )}
+                  </button>
+                </form>
+
+                <div className="mt-6 text-center">
+                  <Link to="/signup" className="auth-link">
+                    Don't have an account? Sign up
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* FORM ILLUSTRATION - RIGHT SIDE */}
+            <div className="hidden md:w-1/2 md:flex items-center justify-center p-6 bg-gradient-to-bl from-slate-800/20 to-transparent">
+              <div>
+                <img
+                  src="/FlyUpLogin.png"
+                  alt="Login Illustration"
+                  className="w-full h-auto object-contain"
+                  onError={(e) => {
+                    e.target.style.display = "none"; // Hide if image missing
+                  }}
+                />
+                <div className="mt-6 text-center">
+                  <h3 className="text-xl font-medium text-cyan-400">
+                    Welcome Back!
+                  </h3>
+                  <p className="text-slate-400 mt-2"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </BorderAnimatedContainer>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;

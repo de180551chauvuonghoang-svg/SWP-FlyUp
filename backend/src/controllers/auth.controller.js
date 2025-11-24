@@ -42,7 +42,7 @@ export const signup = async (req, res) => {
 
 
       const saveUser = await newUser.save();
-      generateToken(saveUser._id, res);
+      // generateToken(saveUser._id, res); // Removed to prevent auto-login
 
       res.status(201).json({
         _id: newUser._id,

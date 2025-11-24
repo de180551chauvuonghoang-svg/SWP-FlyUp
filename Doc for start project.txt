@@ -11,6 +11,15 @@ Deploy với Sevalla --> ở folder tổng dự án chạy lệnh  npm init -y (
 
 package.json của folder dự án 
 
+-------------------Cors----------------
+cd backend -->npm install cors 
+
+-------------------React-hot-toast----------------
+cd frontend -->npm install react-hot-toast
+
+------------------  Lucide-react----------------
+cd frontend -->npm list lucide-react
+
 ------------------  Zustand----------------
 cd frontend --> npm install zustand@5.0.3
 ------------------ Axios----------------

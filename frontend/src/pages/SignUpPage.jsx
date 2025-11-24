@@ -42,8 +42,11 @@ function SignUpPage() {
     const success = validateForm();
 
     if (success === true) {
-      const isSignedUp = await signup(formData);
-      if (isSignedUp) navigate("/login");
+      const saved = await signup(formData);
+      if (saved) {
+        // pass email to login page so user doesn't need to retype it
+        navigate("/login", { state: { email: saved.email } });
+      }
     }
   };
 

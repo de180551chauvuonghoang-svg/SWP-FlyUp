@@ -10,6 +10,8 @@ function SignUpPage() {
     fullName: "",
     email: "",
     password: "",
+    phone: "",
+    dob: "",
   });
   const { signup, isSigningUp } = useAuthStore();
   const navigate = useNavigate();
@@ -22,6 +24,14 @@ function SignUpPage() {
     if (!formData.password) return toast.error("Password is required");
     if (formData.password.length < 6)
       return toast.error("Password must be at least 6 characters");
+    if (!formData.phone || !formData.phone.trim())
+      return toast.error("Phone number is required");
+    const phoneNormalized = formData.phone.replace(/[\s-]/g, "");
+    if (!/^\+?\d{7,15}$/.test(phoneNormalized))
+      return toast.error("Invalid phone number");
+    if (!formData.dob) return toast.error("Date of birth is required");
+    const parsedDob = new Date(formData.dob);
+    if (isNaN(parsedDob.getTime())) return toast.error("Invalid date of birth");
 
     return true;
   };
@@ -94,6 +104,38 @@ function SignUpPage() {
                       />
                     </div>
                   </div>
+
+                      {/* PHONE INPUT */}
+                      <div>
+                        <label className="auth-input-label">Phone</label>
+                        <div className="relative">
+                          <input
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) =>
+                              setFormData({ ...formData, phone: e.target.value })
+                            }
+                            className="input"
+                            placeholder="+84901234567"
+                          />
+                        </div>
+                      </div>
+
+                      {/* DOB INPUT */}
+                      <div>
+                        <label className="auth-input-label">Date of Birth</label>
+                        <div className="relative">
+                          <input
+                            type="date"
+                            value={formData.dob}
+                            onChange={(e) =>
+                              setFormData({ ...formData, dob: e.target.value })
+                            }
+                            className="input"
+                            placeholder="Date of birth"
+                          />
+                        </div>
+                      </div>
 
                   {/* PASSWORD INPUT */}
                   <div>

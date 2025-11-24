@@ -6,10 +6,10 @@ import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudiary.js";
 
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, phone, dob } = req.body;
 
   try {
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !password || !phone || !dob) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -17,10 +17,56 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // check if emailis valid: regex
+    // check if email is valid: regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // basic phone validation: digits, allow + and spaces/hyphens
+    const phoneNormalized = phone.toString().replace(/[\s-]/g, "");
+    const phoneRegex = /^\+?\d{7,15}$/;
+    if (!phoneRegex.test(phoneNormalized)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+
+    // validate dob as a date and ensure user is at least, e.g., 3 years old (basic sanity)
+    const parseDob = (input) => {
+      if (!input) return null;
+      // if already a Date
+      if (input instanceof Date) return input;
+      // ISO format yyyy-mm-dd
+      if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+        const [y, m, d] = input.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, d));
+      }
+      // common handwritten format dd/mm/yyyy or dd-mm-yyyy -> interpret as day/month/year
+      if (/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/.test(input)) {
+        const parts = input.includes("/") ? input.split("/") : input.split("-");
+        const d = Number(parts[0]);
+        const m = Number(parts[1]);
+        const y = Number(parts[2]);
+        return new Date(Date.UTC(y, m - 1, d));
+      }
+      // fallback to generic Date parse (still may be environment dependent)
+      const fallback = new Date(input);
+      if (!isNaN(fallback.getTime())) {
+        return new Date(Date.UTC(fallback.getFullYear(), fallback.getMonth(), fallback.getDate()));
+      }
+      return null;
+    };
+
+    const parsedDob = parseDob(dob);
+    if (!parsedDob) {
+      return res.status(400).json({ message: "Invalid date of birth" });
+    }
+
+    const minDob = new Date();
+    minDob.setFullYear(minDob.getFullYear() - 3);
+    // convert minDob to UTC midnight for consistent comparison
+    const minDobUtc = new Date(Date.UTC(minDob.getFullYear(), minDob.getMonth(), minDob.getDate()));
+    if (parsedDob > minDobUtc) {
+      return res.status(400).json({ message: "Invalid date of birth" });
     }
 
     const user = await User.findOne({ email });
@@ -34,6 +80,8 @@ export const signup = async (req, res) => {
       fullName,
       email,
       password: hashedPassword,
+      phone: phoneNormalized,
+      dob: parsedDob,
     });
 
     if (newUser) {
@@ -45,10 +93,12 @@ export const signup = async (req, res) => {
       // generateToken(saveUser._id, res); // Removed to prevent auto-login
 
       res.status(201).json({
-        _id: newUser._id,
-        fullName: newUser.fullName,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
+        _id: saveUser._id,
+        fullName: saveUser.fullName,
+        email: saveUser.email,
+        phone: saveUser.phone,
+        dob: saveUser.dob,
+        profilePic: saveUser.profilePic,
       });
 
       // send a welcome email to user

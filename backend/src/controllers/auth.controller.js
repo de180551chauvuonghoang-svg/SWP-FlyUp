@@ -6,10 +6,10 @@ import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudiary.js";
 
 export const signup = async (req, res) => {
-  const { fullName, email, password, phone, dob } = req.body;
+  const { fullName, email, password, phone, dob, sex } = req.body;
 
   try {
-    if (!fullName || !email || !password || !phone || !dob) {
+    if (!fullName || !email || !password || !phone || !dob || !sex) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -28,6 +28,12 @@ export const signup = async (req, res) => {
     const phoneRegex = /^\+?\d{7,15}$/;
     if (!phoneRegex.test(phoneNormalized)) {
       return res.status(400).json({ message: "Invalid phone number" });
+    }
+
+    // validate sex
+    const sexNormalized = String(sex).toLowerCase();
+    if (!["male", "female"].includes(sexNormalized)) {
+      return res.status(400).json({ message: "Invalid sex value. Choose 'male' or 'female'." });
     }
 
     // validate dob as a date and ensure user is at least, e.g., 3 years old (basic sanity)
@@ -85,6 +91,7 @@ export const signup = async (req, res) => {
       password: hashedPassword,
       phone: phoneNormalized,
       dob: parsedDob,
+      sex: sexNormalized,
     });
 
     if (newUser) {
@@ -99,6 +106,7 @@ export const signup = async (req, res) => {
         _id: saveUser._id,
         fullName: saveUser.fullName,
         email: saveUser.email,
+        sex: saveUser.sex,
         phone: saveUser.phone,
         dob: saveUser.dob,
         profilePic: saveUser.profilePic,
@@ -177,6 +185,10 @@ export const updateProfile = async (req, res) => {
 
   } catch (error) {
     console.error("Error in updateProfile controller:", error);
+    // expose error message in development for easier debugging
+    if (ENV.NODE_ENV === "development") {
+      return res.status(500).json({ message: "Internal server error", detail: error.message });
+    }
     res.status(500).json({ message: "Internal server error" });
   }
 };

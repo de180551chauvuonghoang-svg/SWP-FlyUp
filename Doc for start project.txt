@@ -10,6 +10,11 @@ Crete be foder --> New Terminal --> cd backend --> npm init -i (create package.j
 Deploy với Sevalla --> ở folder tổng dự án chạy lệnh  npm init -y (create package.json) --> ( sau đó New terminal cd frontend --> npm run build ) bỏ qua xóa dist nếu chạy rồi  --> 
 
 package.json của folder dự án 
+-------------------Socket.io client ----------------
+cd frontend --> npm install socket.io-client@4.8.1
+
+-------------------Socket.io----------------
+cd backend --> npm install socket.io@4.8.1
 
 -------------------Cors----------------
 cd backend -->npm install cors 
@@ -71,10 +76,33 @@ cloudname: dduyqntd6
 // Sign Up 
 
 {
-    "fullName": "mit",
-    "email": "de180551chauvuonghoang@gmail.com",
-    "password": "mit54480"
+    "fullName":"hoangchau123",
+    "email": "hoangchau123@gmail.com",
+    "password": "hoangchau123",
+    "phone":"0905743124",
+    "dob":"09/01/2004",
+    "sex":"male"
 }
+
+{
+    "fullName":"hoangdayne",
+    "email": "de180551chauvuonghoang@gmail.com",
+    "password": "hoangdayne",
+    "phone":"0854633199",
+    "dob":"09/06/2004",
+    "sex":"male"
+}
+
+{
+    "fullName":"mit54490",
+    "email": "mit54490@gmail.com",
+    "password": "mit54490",
+    "phone":"0905662141",
+    "dob":"09/12/2004",
+    "sex":"female"
+}
+
+
 
 //login 
 

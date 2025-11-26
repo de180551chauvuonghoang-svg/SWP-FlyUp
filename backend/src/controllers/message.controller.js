@@ -106,3 +106,55 @@ export const getChatPartners = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const addReaction = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { emoji } = req.body;
+    const userId = req.user._id;
+
+    if (!emoji) {
+      return res.status(400).json({ message: "Emoji is required" });
+    }
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Check if user already reacted with this emoji
+    const existingReactionIndex = message.reactions.findIndex(
+      (reaction) => reaction.userId.toString() === userId.toString() && reaction.emoji === emoji
+    );
+
+    if (existingReactionIndex > -1) {
+      // Remove reaction if already exists (toggle off)
+      message.reactions.splice(existingReactionIndex, 1);
+    } else {
+      // Remove any other reaction from this user first (one reaction per user)
+      message.reactions = message.reactions.filter(
+        (reaction) => reaction.userId.toString() !== userId.toString()
+      );
+      // Add new reaction
+      message.reactions.push({ userId, emoji });
+    }
+
+    await message.save();
+
+    // Emit socket event to both sender and receiver
+    const receiverSocketId = getReceiverSocketId(message.receiverId);
+    const senderSocketId = getReceiverSocketId(message.senderId);
+    
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("reactionUpdate", message);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("reactionUpdate", message);
+    }
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Error in addReaction: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

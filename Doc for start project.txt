@@ -1,3 +1,9 @@
+-----------------
+run frontend --> cd frontend --> npm run dev
+
+run backend --> cd backend --> npm run dev
+
+run project --> npm run dev:all
 
 ------------------
 

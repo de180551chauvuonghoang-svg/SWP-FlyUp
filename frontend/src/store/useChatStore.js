@@ -70,6 +70,7 @@ export const useChatStore = create((set, get) => ({
       image: messageData.image,
       createdAt: new Date().toISOString(),
       isOptimistic: true, // flag to identify optimistic messages (optional)
+      reactions: [], // Initialize with empty reactions
     };
     // immidetaly update the ui by adding the message
     set({ messages: [...messages, optimisticMessage] });
@@ -104,10 +105,34 @@ export const useChatStore = create((set, get) => ({
         notificationSound.play().catch((e) => console.log("Audio play failed:", e));
       }
     });
+
+    socket.on("reactionUpdate", (updatedMessage) => {
+      const currentMessages = get().messages;
+      const updatedMessages = currentMessages.map((msg) =>
+        msg._id === updatedMessage._id ? updatedMessage : msg
+      );
+      set({ messages: updatedMessages });
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("reactionUpdate");
+  },
+
+  addReaction: async (messageId, emoji) => {
+    try {
+      const res = await axiosInstance.post(`/messages/reaction/${messageId}`, { emoji });
+      
+      // Update the message in the local state
+      const currentMessages = get().messages;
+      const updatedMessages = currentMessages.map((msg) =>
+        msg._id === messageId ? res.data : msg
+      );
+      set({ messages: updatedMessages });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add reaction");
+    }
   },
 }));

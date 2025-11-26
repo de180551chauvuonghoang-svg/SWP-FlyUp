@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { sendWelcomeEmail } from "../emails/emailHandelers.js";
 import { ENV } from "../lib/env.js";
-import cloudinary from "../lib/cloudiary.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
   const { fullName, email, password, phone, dob, sex } = req.body;

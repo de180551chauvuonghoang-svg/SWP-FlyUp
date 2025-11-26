@@ -2,12 +2,14 @@ import { useRef, useState } from "react";
 import useKeyboardSound from "../hooks/useKeyboardSound";
 import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
-import { ImageIcon, SendIcon, XIcon } from "lucide-react";
+import { ImageIcon, SendIcon, XIcon, Smile } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 
 function MessageInput() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -24,6 +26,7 @@ function MessageInput() {
     });
     setText("");
     setImagePreview("");
+    setShowEmojiPicker(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -42,6 +45,11 @@ function MessageInput() {
   const removeImage = () => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleEmojiClick = (emojiObject) => {
+    setText((prevText) => prevText + emojiObject.emoji);
+    if (isSoundEnabled) playRandomKeyStrokeSound();
   };
 
   return (
@@ -65,7 +73,24 @@ function MessageInput() {
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex space-x-4">
+      {/* Emoji Picker */}
+      {showEmojiPicker && (
+        <div className="max-w-3xl mx-auto mb-3 relative">
+          <div className="absolute bottom-0 left-0 z-50">
+            <EmojiPicker
+              onEmojiClick={handleEmojiClick}
+              theme="dark"
+              width={350}
+              height={400}
+            />
+          </div>
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSendMessage}
+        className="max-w-3xl mx-auto flex space-x-4"
+      >
         <input
           type="text"
           value={text}
@@ -84,6 +109,17 @@ function MessageInput() {
           onChange={handleImageChange}
           className="hidden"
         />
+
+        {/* Emoji Button */}
+        <button
+          type="button"
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          className={`bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors ${
+            showEmojiPicker ? "text-yellow-500" : ""
+          }`}
+        >
+          <Smile className="w-5 h-5" />
+        </button>
 
         <button
           type="button"

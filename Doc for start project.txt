@@ -10,6 +10,9 @@ Crete be foder --> New Terminal --> cd backend --> npm init -i (create package.j
 Deploy với Sevalla --> ở folder tổng dự án chạy lệnh  npm init -y (create package.json) --> ( sau đó New terminal cd frontend --> npm run build ) bỏ qua xóa dist nếu chạy rồi  --> 
 
 package.json của folder dự án 
+
+-------------------Emoji picker ----------------
+cd frontend --> npm install emoji-picker-react
 -------------------Socket.io client ----------------
 cd frontend --> npm install socket.io-client@4.8.1
 

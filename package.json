@@ -6,7 +6,9 @@
   "scripts": {
     "build": "npm --prefix backend install && npm --prefix frontend install && npm  run build --prefix frontend",
     "start": "npm run start --prefix backend",
-    "dev": "npm run dev --prefix backend"
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"cyan,magenta\""
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,7 @@
   },
   "homepage": "https://github.com/de180551chauvuonghoang-svg/SWP-FlyUp#readme",
   "dependencies": {
-    "cloudinary": "^2.5.1"
+    "cloudinary": "^2.5.1",
+    "concurrently": "^9.1.0"
   }
 }

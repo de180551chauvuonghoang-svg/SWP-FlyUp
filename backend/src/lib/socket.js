@@ -12,6 +12,7 @@ const io = new Server(server, {
     origin: [
       ENV.CLIENT_URL,
       "https://swp-flyup-1.onrender.com",
+      "https://swp-fly-up.vercel.app",
       "http://localhost:5173",
       "http://localhost:3000"
     ],

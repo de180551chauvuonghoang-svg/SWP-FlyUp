@@ -30,10 +30,10 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
-
+      // set({ authUser: res.data }); // We don't auto-login anymore
       toast.success("Account created successfully!");
-      get().connectSocket();
+      // get().connectSocket();
+      return res.data;
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {

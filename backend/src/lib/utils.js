@@ -13,8 +13,9 @@ export const generateToken = (userId, res) => {
 
     // Determine if we are in production or a cross-site environment
     // We treat it as production if NODE_ENV is production OR if the client URL implies a deployed app (e.g. vercel/render)
+    // OR if we are running on Render (ENV.RENDER is true)
     // This ensures SameSite: None and Secure: True are set for cross-site requests
-    const isProduction = NODE_ENV === "production" || (CLIENT_URL && (CLIENT_URL.includes("vercel") || CLIENT_URL.includes("render")));
+    const isProduction = NODE_ENV === "production" || ENV.RENDER || (CLIENT_URL && (CLIENT_URL.includes("vercel") || CLIENT_URL.includes("render")));
 
     res.cookie("jwt", token, {
         maxAge: 7 * 24 * 60 * 60 * 1000, //MS

@@ -14,5 +14,6 @@ export const ENV = {
     ARCJET_KEY: process.env.ARCJET_KEY,
     ARCJET_ENV: process.env.ARCJET_ENV,
     NODE_ENV: process.env.NODE_ENV,
+    RENDER: process.env.RENDER,
 };
 

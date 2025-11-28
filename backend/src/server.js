@@ -13,6 +13,8 @@ const __dirname = path.resolve();
 
 const PORT = ENV.PORT || 3000;
 
+app.set("trust proxy", 1); // Trust first proxy (Render load balancer)
+
 app.use(express.json({ limit: "5mb" })); // req.body
 
 // Sanitize and log CLIENT_URL used for CORS (helps catch typos/whitespace)

@@ -9,7 +9,12 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [ENV.CLIENT_URL],
+    origin: [
+      ENV.CLIENT_URL,
+      "https://swp-flyup-1.onrender.com",
+      "http://localhost:5173",
+      "http://localhost:3000"
+    ],
     credentials: true,
   },
 });

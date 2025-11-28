@@ -157,11 +157,15 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
+  const { NODE_ENV, CLIENT_URL, RENDER } = ENV;
+  // Determine if we are in production or a cross-site environment (same logic as generateToken)
+  const isProduction = NODE_ENV === "production" || RENDER || (CLIENT_URL && (CLIENT_URL.includes("vercel") || CLIENT_URL.includes("render")));
+
   res.cookie("jwt", "", {
     maxAge: 0,
     httpOnly: true,
-    sameSite: "strict",
-    secure: ENV.NODE_ENV === "development" ? false : true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
   });
 
   res.status(200).json({ message: "Logout successful" });

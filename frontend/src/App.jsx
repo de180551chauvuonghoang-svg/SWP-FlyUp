@@ -8,12 +8,29 @@ import PageLoader from "./components/PageLoader";
 
 import { Toaster } from "react-hot-toast";
 
+import { axiosInstance } from "./lib/axios";
+
 function App() {
   const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    const interceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          useAuthStore.getState().disconnectSocket();
+          useAuthStore.setState({ authUser: null });
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axiosInstance.interceptors.response.eject(interceptor);
+  }, []);
 
   if (isCheckingAuth) return <PageLoader />;
 

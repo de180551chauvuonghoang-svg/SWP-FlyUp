@@ -1,4 +1,3 @@
-```javascript
 import jwt from "jsonwebtoken";
 import { ENV } from "./env.js";
 
@@ -25,4 +24,3 @@ export const generateToken = (userId, res) => {
     });
     return token;
 }
-```

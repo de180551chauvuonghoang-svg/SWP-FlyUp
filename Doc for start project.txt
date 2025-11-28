@@ -111,6 +111,15 @@ cloudname: dduyqntd6
     "sex":"female"
 }
 
+{
+    "fullName":"huynhgiang59",
+    "email": "huynhgiang59@gmail.com",
+    "password": "huynhgiang59",
+    "phone":"0904562141",
+    "dob":"09/02/2005",
+    "sex":"female"
+}
+
 
 
 //login 
@@ -143,3 +152,7 @@ for /f "tokens=5" %a in ('netstat -ano ^| find ":3000"') do taskkill /PID %a /F
     "email": "hieutran33@gmail.com",
     "password": "hieutran33"
 }
+
+
+VITE_API_URL = "https://swp-flyup-1.onrender.com"
+CLIENT_URL = "https://swp-flyup-1.vercel.app"

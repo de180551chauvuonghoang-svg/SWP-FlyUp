@@ -23,6 +23,7 @@ console.log("NODE_ENV:", ENV.NODE_ENV);
 const allowedOrigins = [
   clientUrl,
   "https://swp-flyup-1.onrender.com",
+  "https://swp-fly-up.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000"
 ];

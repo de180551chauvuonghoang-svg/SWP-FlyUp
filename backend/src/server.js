@@ -18,9 +18,32 @@ app.use(express.json({ limit: "5mb" })); // req.body
 // Sanitize and log CLIENT_URL used for CORS (helps catch typos/whitespace)
 const clientUrl = (ENV.CLIENT_URL || "http://localhost:5173").toString().trim();
 console.log("CORS allowed origin:", clientUrl);
-app.use(cors({ origin: clientUrl, credentials: true }));
+console.log("NODE_ENV:", ENV.NODE_ENV);
+
+const allowedOrigins = [
+  clientUrl,
+  "https://swp-flyup-1.onrender.com",
+  "http://localhost:5173",
+  "http://localhost:3000"
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || origin.includes("vercel.app") || origin.includes("onrender.com")) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 // enable preflight for all routes
-app.options("*", cors({ origin: clientUrl, credentials: true }));
+app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
 

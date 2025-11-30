@@ -1,9 +1,11 @@
 import { generateToken } from "../lib/utils.js";
-import User from "../models/User.js";
+import { query } from "../lib/postgres.js";
 import bcrypt from "bcryptjs";
 import { sendWelcomeEmail } from "../emails/emailHandelers.js";
 import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
+
+import User from "../models/User.js";
 
 export const signup = async (req, res) => {
   const { fullName, email, password, phone, dob, sex } = req.body;
@@ -17,36 +19,29 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // check if email is valid: regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // basic phone validation: digits, allow + and spaces/hyphens
     const phoneNormalized = phone.toString().replace(/[\s-]/g, "");
     const phoneRegex = /^\+?\d{7,15}$/;
     if (!phoneRegex.test(phoneNormalized)) {
       return res.status(400).json({ message: "Invalid phone number" });
     }
 
-    // validate sex
     const sexNormalized = String(sex).toLowerCase();
     if (!["male", "female"].includes(sexNormalized)) {
       return res.status(400).json({ message: "Invalid sex value. Choose 'male' or 'female'." });
     }
 
-    // validate dob as a date and ensure user is at least, e.g., 3 years old (basic sanity)
     const parseDob = (input) => {
       if (!input) return null;
-      // if already a Date
       if (input instanceof Date) return input;
-      // ISO format yyyy-mm-dd
       if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
         const [y, m, d] = input.split("-").map(Number);
         return new Date(Date.UTC(y, m - 1, d));
       }
-      // common handwritten format dd/mm/yyyy or dd-mm-yyyy -> interpret as day/month/year
       if (/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/.test(input)) {
         const parts = input.includes("/") ? input.split("/") : input.split("-");
         const d = Number(parts[0]);
@@ -54,7 +49,6 @@ export const signup = async (req, res) => {
         const y = Number(parts[2]);
         return new Date(Date.UTC(y, m - 1, d));
       }
-      // fallback to generic Date parse (still may be environment dependent)
       const fallback = new Date(input);
       if (!isNaN(fallback.getTime())) {
         return new Date(Date.UTC(fallback.getFullYear(), fallback.getMonth(), fallback.getDate()));
@@ -69,62 +63,83 @@ export const signup = async (req, res) => {
 
     const minDob = new Date();
     minDob.setFullYear(minDob.getFullYear() - 3);
-    // convert minDob to UTC midnight for consistent comparison
     const minDobUtc = new Date(Date.UTC(minDob.getFullYear(), minDob.getMonth(), minDob.getDate()));
     if (parsedDob > minDobUtc) {
       return res.status(400).json({ message: "Invalid date of birth" });
     }
 
-    const user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: "Email already exists" });
-    // check phone uniqueness
-    const existingPhone = await User.findOne({ phone: phoneNormalized });
-    if (existingPhone) return res.status(400).json({ message: "Phone already exists" });
+    // Check existing user in Postgres
+    console.log("Checking for existing user in Postgres:", email, phoneNormalized);
+    const userCheck = await query("SELECT * FROM users WHERE email = $1 OR phone = $2", [email, phoneNormalized]);
+    if (userCheck.rows.length > 0) {
+        console.log("User already exists in Postgres");
+        return res.status(400).json({ message: "Email or Phone already exists" });
+    }
 
-    // 123456 => $dnjasdkasj_?dmsakmk
+    // Check existing user in Mongo (Double check for consistency)
+    const mongoUserCheck = await User.findOne({ $or: [{ email }, { phone: phoneNormalized }] });
+    if (mongoUserCheck) {
+         console.log("User already exists in Mongo");
+         return res.status(400).json({ message: "Email or Phone already exists in MongoDB" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({
-      fullName,
-      email,
-      password: hashedPassword,
-      phone: phoneNormalized,
-      dob: parsedDob,
-      sex: sexNormalized,
-    });
+    console.log("Inserting new user into Postgres...");
+    const insertQuery = `
+        INSERT INTO users (full_name, email, password, phone, dob, sex)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+    `;
+    const { rows } = await query(insertQuery, [fullName, email, hashedPassword, phoneNormalized, parsedDob, sexNormalized]);
+    const newUser = rows[0];
+    console.log("User inserted into Postgres:", newUser);
 
     if (newUser) {
-      //   generateToken(newUser._id, res);
-      //   await newUser.save();
-
-
-      const saveUser = await newUser.save();
-      // generateToken(saveUser._id, res); // Removed to prevent auto-login
+      // Sync with MongoDB
+      try {
+          console.log("Syncing user to MongoDB...");
+          const newMongoUser = new User({
+              fullName: newUser.full_name,
+              email: newUser.email,
+              password: newUser.password, // Storing the same hashed password
+              phone: newUser.phone,
+              dob: newUser.dob,
+              sex: newUser.sex,
+              postgresId: newUser.id.toString(),
+              profilePic: newUser.profile_pic || ""
+          });
+          await newMongoUser.save();
+          console.log("User synced to MongoDB successfully");
+      } catch (mongoError) {
+          console.error("Error syncing to MongoDB:", mongoError);
+          // Note: We might want to rollback Postgres here or just log the error. 
+          // For now, we proceed but log it.
+      }
 
       res.status(201).json({
-        _id: saveUser._id,
-        fullName: saveUser.fullName,
-        email: saveUser.email,
-        sex: saveUser.sex,
-        phone: saveUser.phone,
-        dob: saveUser.dob,
-        profilePic: saveUser.profilePic,
+        _id: newUser.id.toString(),
+        fullName: newUser.full_name,
+        email: newUser.email,
+        sex: newUser.sex,
+        phone: newUser.phone,
+        dob: newUser.dob,
+        profilePic: newUser.profile_pic,
       });
 
-      // send a welcome email to user
       try {
-        await sendWelcomeEmail(saveUser.email, saveUser.fullName, ENV.CLIENT_URL || "http://localhost:5173");
+        await sendWelcomeEmail(newUser.email, newUser.full_name, ENV.CLIENT_URL || "http://localhost:5173");
       } catch (emailError) {
         console.error("Error sending welcome email:", emailError);
-        // We don't want to fail the signup if email fails, so we just log it
       }
     } else {
+      console.log("Failed to insert user into Postgres, no rows returned");
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
     console.log("Error in signup controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
@@ -136,19 +151,21 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = await User.findOne({ email });
+    const { rows } = await query("SELECT * FROM users WHERE email = $1", [email]);
+    const user = rows[0];
+
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(400).json({ message: "Invalid credentials" });
 
-    generateToken(user._id, res);
+    generateToken(user.id, res);
 
     res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
+      _id: user.id.toString(),
+      fullName: user.full_name,
       email: user.email,
-      profilePic: user.profilePic,
+      profilePic: user.profile_pic,
     });
   } catch (error) {
     console.error("Error in login controller:", error);
@@ -158,7 +175,6 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   const { NODE_ENV, CLIENT_URL, RENDER } = ENV;
-  // Determine if we are in production or a cross-site environment (same logic as generateToken)
   const isProduction = NODE_ENV === "production" || RENDER || (CLIENT_URL && (CLIENT_URL.includes("vercel") || CLIENT_URL.includes("render")));
 
   res.cookie("jwt", "", {
@@ -181,19 +197,38 @@ export const updateProfile = async (req, res) => {
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
 
-    const updatedUser = await User.findByIdAndUpdate(userId, {
-      profilePic: uploadResponse.secure_url,
-    }, { new: true });
+    const updateQuery = `
+        UPDATE users
+        SET profile_pic = $1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+        RETURNING *
+    `;
+    const { rows } = await query(updateQuery, [uploadResponse.secure_url, userId]);
+    const updatedUser = rows[0];
 
-    res.status(200).json(updatedUser);
+    // Sync to Mongo
+    try {
+        await User.findOneAndUpdate(
+            { postgresId: userId.toString() },
+            { profilePic: uploadResponse.secure_url },
+            { new: true }
+        );
+    } catch (mongoError) {
+        console.error("Error syncing profile update to MongoDB:", mongoError);
+    }
+
+    res.status(200).json({
+        _id: updatedUser.id.toString(),
+        fullName: updatedUser.full_name,
+        email: updatedUser.email,
+        profilePic: updatedUser.profile_pic,
+    });
 
   } catch (error) {
     console.error("Error in updateProfile controller:", error);
-    // expose error message in development for easier debugging
     if (ENV.NODE_ENV === "development") {
       return res.status(500).json({ message: "Internal server error", detail: error.message });
     }
     res.status(500).json({ message: "Internal server error" });
   }
 };
-

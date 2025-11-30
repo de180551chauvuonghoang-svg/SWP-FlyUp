@@ -48,6 +48,9 @@ cd frontend --> npm i -D daisyui@4.12.24
 cd frontend --> npm install -D tailwindcss@3 postcss autoprefixer
 npx tailwindcss init -p
 
+------------------ Postgres----------------
+
+cd backend-->npm install pg
 
 ------------------ MongoDB----------------
  MongoDB

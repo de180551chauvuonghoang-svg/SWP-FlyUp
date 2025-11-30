@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  postgresId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null/undefined values if needed, though we intend to fill it
+  },
   password: {
     type: String,
     required: true,

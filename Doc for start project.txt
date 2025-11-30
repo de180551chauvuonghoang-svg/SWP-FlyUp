@@ -129,6 +129,13 @@ cloudname: dduyqntd6
     "email": "de180551chauvuonghoang@gmail.com",
     "password": "mit54480"
 }
+
+{
+
+    "email": "shiiuoi@gmail.com",
+    "password": "shiiuoi"
+}
+
 ------------------ Kill port  ----------------
 
 netstat -ano | findstr :3000

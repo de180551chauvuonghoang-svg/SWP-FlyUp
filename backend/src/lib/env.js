@@ -15,5 +15,7 @@ export const ENV = {
     ARCJET_ENV: process.env.ARCJET_ENV,
     NODE_ENV: process.env.NODE_ENV,
     RENDER: process.env.RENDER,
+    GMAIL_USER: process.env.GMAIL_USER,
+    GMAIL_PASS: process.env.GMAIL_PASS,
 };
 

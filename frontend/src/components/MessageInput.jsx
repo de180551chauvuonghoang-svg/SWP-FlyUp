@@ -91,15 +91,21 @@ function MessageInput() {
         onSubmit={handleSendMessage}
         className="max-w-3xl mx-auto flex space-x-4"
       >
-        <input
-          type="text"
+        <textarea
           value={text}
           onChange={(e) => {
             setText(e.target.value);
             isSoundEnabled && playRandomKeyStrokeSound();
           }}
-          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage(e);
+            }
+          }}
+          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4 resize-none min-h-[44px] max-h-[120px] overflow-y-auto"
           placeholder="Type your message..."
+          rows={1}
         />
 
         <input

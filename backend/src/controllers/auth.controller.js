@@ -5,8 +5,6 @@ import { sendWelcomeEmail } from "../emails/emailHandelers.js";
 import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
 
-import User from "../models/User.js";
-
 export const signup = async (req, res) => {
   const { fullName, email, password, phone, dob, sex } = req.body;
 
@@ -69,24 +67,14 @@ export const signup = async (req, res) => {
     }
 
     // Check existing user in Postgres
-    console.log("Checking for existing user in Postgres:", email, phoneNormalized);
     const userCheck = await query("SELECT * FROM users WHERE email = $1 OR phone = $2", [email, phoneNormalized]);
     if (userCheck.rows.length > 0) {
-        console.log("User already exists in Postgres");
         return res.status(400).json({ message: "Email or Phone already exists" });
-    }
-
-    // Check existing user in Mongo (Double check for consistency)
-    const mongoUserCheck = await User.findOne({ $or: [{ email }, { phone: phoneNormalized }] });
-    if (mongoUserCheck) {
-         console.log("User already exists in Mongo");
-         return res.status(400).json({ message: "Email or Phone already exists in MongoDB" });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    console.log("Inserting new user into Postgres...");
     const insertQuery = `
         INSERT INTO users (full_name, email, password, phone, dob, sex)
         VALUES ($1, $2, $3, $4, $5, $6)
@@ -94,30 +82,8 @@ export const signup = async (req, res) => {
     `;
     const { rows } = await query(insertQuery, [fullName, email, hashedPassword, phoneNormalized, parsedDob, sexNormalized]);
     const newUser = rows[0];
-    console.log("User inserted into Postgres:", newUser);
 
     if (newUser) {
-      // Sync with MongoDB
-      try {
-          console.log("Syncing user to MongoDB...");
-          const newMongoUser = new User({
-              fullName: newUser.full_name,
-              email: newUser.email,
-              password: newUser.password, // Storing the same hashed password
-              phone: newUser.phone,
-              dob: newUser.dob,
-              sex: newUser.sex,
-              postgresId: newUser.id.toString(),
-              profilePic: newUser.profile_pic || ""
-          });
-          await newMongoUser.save();
-          console.log("User synced to MongoDB successfully");
-      } catch (mongoError) {
-          console.error("Error syncing to MongoDB:", mongoError);
-          // Note: We might want to rollback Postgres here or just log the error. 
-          // For now, we proceed but log it.
-      }
-
       res.status(201).json({
         _id: newUser.id.toString(),
         fullName: newUser.full_name,
@@ -134,7 +100,6 @@ export const signup = async (req, res) => {
         console.error("Error sending welcome email:", emailError);
       }
     } else {
-      console.log("Failed to insert user into Postgres, no rows returned");
       res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
@@ -154,10 +119,14 @@ export const login = async (req, res) => {
     const { rows } = await query("SELECT * FROM users WHERE email = $1", [email]);
     const user = rows[0];
 
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) {
+        return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isPasswordValid) {
+        return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     generateToken(user.id, res);
 
@@ -205,17 +174,6 @@ export const updateProfile = async (req, res) => {
     `;
     const { rows } = await query(updateQuery, [uploadResponse.secure_url, userId]);
     const updatedUser = rows[0];
-
-    // Sync to Mongo
-    try {
-        await User.findOneAndUpdate(
-            { postgresId: userId.toString() },
-            { profilePic: uploadResponse.secure_url },
-            { new: true }
-        );
-    } catch (mongoError) {
-        console.error("Error syncing profile update to MongoDB:", mongoError);
-    }
 
     res.status(200).json({
         _id: updatedUser.id.toString(),
